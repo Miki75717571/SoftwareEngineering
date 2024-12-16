@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "./utils/supabaseClient";
+import UploadPopUp from "./components/UploadPopUp";
 
 export default function Dashboard() {
   const [resources, setResources] = useState([]);
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
-
+  const [editResource, setEditResource] = useState(null);
+  const [description, setDescription] = useState("");
 
   // Fetch Resources
   const fetchResources = async () => {
@@ -24,18 +26,18 @@ export default function Dashboard() {
       console.error("Unexpected error fetching resources:", e);
     }
   };
-  
+
   const addResource = async () => {
-    if (!name || !quantity) {
-      alert("Please fill in both Resource Name and Quantity");
+    if (!name || !quantity || !description) {
+      alert("Please fill all boxes");
       return;
     }
-  
+
     try {
       const { error } = await supabase
         .from("resources")
-        .insert([{ name, quantity: parseInt(quantity) }]);
-  
+        .insert([{ name, quantity: parseInt(quantity), description }]);
+
       if (error) {
         console.error("Error adding resource:", error);
         alert("Error adding resource: " + error.message);
@@ -43,12 +45,14 @@ export default function Dashboard() {
         fetchResources();
         setName("");
         setQuantity("");
+        setDescription("");
         alert("Resource added successfully!");
       }
     } catch (e) {
       console.error("Unexpected error adding resource:", e);
     }
   };
+
   const deleteResource = async (id) => {
     const { error } = await supabase.from("resources").delete().eq("id", id);
     if (error) {
@@ -56,24 +60,20 @@ export default function Dashboard() {
       alert("Error deleting resource: " + error.message);
     } else {
       fetchResources();
-      alert("Resource deleted successfully!");
     }
   };
 
-  // Update Resource (Example: Increment Quantity)
-  const updateResource = async (id, currentQuantity) => {
-    const { error } = await supabase
-      .from("resources")
-      .update({ quantity: currentQuantity + 1 })
-      .eq("id", id);
+  const handleEdit = (resource) => {
+    setEditResource(resource);
+  };
 
-    if (error) {
-      console.error("Error updating resource:", error);
-      alert("Error updating resource: " + error.message);
-    } else {
-      fetchResources();
-      alert("Resource updated successfully!");
-    }
+  const handleSave = () => {
+    setEditResource(null);
+    fetchResources();
+  };
+
+  const handleCancel = () => {
+    setEditResource(null);
   };
 
   useEffect(() => {
@@ -84,33 +84,47 @@ export default function Dashboard() {
     <main style={styles.container}>
       <h1 style={styles.header}>Resource Management Dashboard</h1>
 
-      {/* Add Resource Form */}
-      <div style={styles.formContainer}>
-        <input
-          type="text"
-          placeholder="Resource Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={styles.input}
+      {editResource ? (
+        <UploadPopUp
+          resource={editResource}
+          onSave={handleSave}
+          onCancel={handleCancel}
         />
-        <input
-          type="number"
-          placeholder="Quantity"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          style={styles.input}
-        />
-        <button onClick={addResource} style={styles.addButton}>
-          ADD
-        </button>
-      </div>
+      ) : (
+        <div style={styles.formContainer}>
+          <input
+            type="text"
+            placeholder="Resource Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={styles.input}
+          />
+          <input
+            type="number"
+            placeholder="Quantity"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            style={styles.input}
+          />
+            <input
+            type="text"
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            style={styles.input}
+          />
+          <button onClick={addResource} style={styles.addButton}>
+            ADD
+          </button>
+        </div>
+      )}
 
-      {/* Resource Table */}
       <table style={styles.table}>
         <thead>
           <tr>
             <th style={styles.tableHeader}>Name</th>
             <th style={styles.tableHeader}>Quantity</th>
+            <th style={styles.tableHeader}>Description</th>
             <th style={styles.tableHeader}>Actions</th>
           </tr>
         </thead>
@@ -119,18 +133,19 @@ export default function Dashboard() {
             <tr key={resource.id} style={styles.tableRow}>
               <td style={styles.tableCell}>{resource.name}</td>
               <td style={styles.tableCell}>{resource.quantity}</td>
+              <td style={styles.tableCell}>{resource.description}</td>
               <td style={styles.tableCell}>
                 <button
+                  style={styles.updateButton}
+                  onClick={() => handleEdit(resource)}
+                >
+                  Update
+                </button>
+                 <button
                   style={styles.deleteButton}
                   onClick={() => deleteResource(resource.id)}
                 >
                   Delete
-                </button>
-                <button
-                  style={styles.updateButton}
-                  onClick={() => updateResource(resource.id, resource.quantity)}
-                >
-                  Update
                 </button>
               </td>
             </tr>
@@ -199,7 +214,6 @@ const styles = {
     textAlign: "center",
   },
   deleteButton: {
-    marginRight: "5px",
     padding: "5px 10px",
     backgroundColor: "#FF6347",
     color: "#FFFFFF",
@@ -208,6 +222,7 @@ const styles = {
     cursor: "pointer",
   },
   updateButton: {
+    marginRight: "5px",
     padding: "5px 10px",
     backgroundColor: "#32CD32",
     color: "#FFFFFF",
