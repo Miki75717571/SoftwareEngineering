@@ -10,94 +10,99 @@ export default function Dashboard() {
 
   // Fetch Resources
   const fetchResources = async () => {
-    const { data, error } = await supabase.from("resources").select("*");
-    if (error) console.error("Error fetching resources:", error);
-    else setResources(data);
-  };
-
-  // Add Resource
-  const addResource = async () => {
-    if (!name || !quantity) return;
-    const { error } = await supabase
-      .from("resources")
-      .insert([{ name, quantity: parseInt(quantity) }]);
-    if (error) console.error("Error adding resource:", error);
-    else {
-      fetchResources();
-      setName("");
-      setQuantity("");
+    try {
+      const { data, error } = await supabase.from("resources").select("*");
+      if (error) {
+        console.error("Error fetching resources:", error);
+        alert("Error fetching resources: " + error.message);
+      } else {
+        setResources(data);
+        console.log("Fetched resources:", data);
+      }
+    } catch (e) {
+      console.error("Unexpected error fetching resources:", e);
     }
   };
-
-  // Delete Resource
-  const deleteResource = async (id) => {
-    const { error } = await supabase.from("resources").delete().eq("id", id);
-    if (error) console.error("Error deleting resource:", error);
-    else fetchResources();
+  
+  const addResource = async () => {
+    if (!name || !quantity) {
+      alert("Please fill in both Resource Name and Quantity");
+      return;
+    }
+  
+    try {
+      const { error } = await supabase
+        .from("resources")
+        .insert([{ name, quantity: parseInt(quantity) }]);
+  
+      if (error) {
+        console.error("Error adding resource:", error);
+        alert("Error adding resource: " + error.message);
+      } else {
+        fetchResources();
+        setName("");
+        setQuantity("");
+        alert("Resource added successfully!");
+      }
+    } catch (e) {
+      console.error("Unexpected error adding resource:", e);
+    }
   };
-
-  // Update Resource (Example: Increment Quantity)
-  const updateResource = async (id, currentQuantity) => {
-    const { error } = await supabase
-      .from("resources")
-      .update({ quantity: currentQuantity + 1 })
-      .eq("id", id);
-    if (error) console.error("Error updating resource:", error);
-    else fetchResources();
-  };
-
   useEffect(() => {
     fetchResources();
   }, []);
 
   return (
-    <main style={{ padding: "20px" }}>
-      <h1>Resource Management Dashboard</h1>
+    <main style={styles.container}>
+      <h1 style={styles.header}>Resource Management Dashboard</h1>
 
       {/* Add Resource Form */}
-      <div style={{ marginBottom: "20px" }}>
+      <div style={styles.formContainer}>
         <input
           type="text"
           placeholder="Resource Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ marginRight: "10px" }}
+          style={styles.input}
         />
         <input
           type="number"
           placeholder="Quantity"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
-          style={{ marginRight: "10px" }}
+          style={styles.input}
         />
-        <button onClick={addResource}>ADD</button>
+        <button onClick={addResource} style={styles.addButton}>
+          ADD
+        </button>
       </div>
 
       {/* Resource Table */}
-      <table border="1" width="100%" style={{ textAlign: "center" }}>
+      <table style={styles.table}>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Quantity</th>
-            <th>Actions</th>
+            <th style={styles.tableHeader}>Name</th>
+            <th style={styles.tableHeader}>Quantity</th>
+            <th style={styles.tableHeader}>Actions</th>
           </tr>
         </thead>
         <tbody>
           {resources.map((resource) => (
-            <tr key={resource.id}>
-              <td>{resource.name}</td>
-              <td>{resource.quantity}</td>
-              <td>
+            <tr key={resource.id} style={styles.tableRow}>
+              <td style={styles.tableCell}>{resource.name}</td>
+              <td style={styles.tableCell}>{resource.quantity}</td>
+              <td style={styles.tableCell}>
                 <button
-                  onClick={() => deleteResource(resource.id)}
-                  style={{ marginRight: "10px" }}
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => updateResource(resource.id, resource.quantity)}
+                  style={styles.actionButton}
+                  onClick={() => console.log("Update clicked")}
                 >
                   Update
+                </button>
+                <button
+                  style={styles.actionButton}
+                  onClick={() => console.log("Delete clicked")}
+                >
+                  Delete
                 </button>
               </td>
             </tr>
@@ -107,3 +112,71 @@ export default function Dashboard() {
     </main>
   );
 }
+
+const styles = {
+  container: {
+    backgroundColor: "#121212", // Dark background
+    color: "#FFFFFF", // White text
+    height: "100vh",
+    padding: "20px",
+    textAlign: "center",
+    fontFamily: "Arial, sans-serif",
+  },
+  header: {
+    fontSize: "2rem",
+    marginBottom: "20px",
+  },
+  formContainer: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "10px",
+    marginBottom: "30px",
+  },
+  input: {
+    padding: "10px",
+    fontSize: "1rem",
+    borderRadius: "5px",
+    border: "1px solid #ddd",
+    width: "200px",
+  },
+  addButton: {
+    padding: "10px 20px",
+    fontSize: "1rem",
+    border: "none",
+    backgroundColor: "#1E90FF",
+    color: "#FFFFFF",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+  table: {
+    width: "80%",
+    margin: "0 auto",
+    borderCollapse: "collapse",
+    backgroundColor: "#1E1E1E",
+    color: "#FFFFFF",
+    borderRadius: "8px",
+    overflow: "hidden",
+  },
+  tableHeader: {
+    backgroundColor: "#333333",
+    padding: "10px",
+    textTransform: "uppercase",
+  },
+  tableRow: {
+    borderBottom: "1px solid #444444",
+  },
+  tableCell: {
+    padding: "10px",
+    textAlign: "center",
+  },
+  actionButton: {
+    margin: "0 5px",
+    padding: "5px 10px",
+    fontSize: "0.9rem",
+    border: "none",
+    backgroundColor: "#FF6347",
+    color: "#FFFFFF",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+};
