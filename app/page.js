@@ -125,7 +125,6 @@ export default function Dashboard() {
             <th style={styles.tableHeader}>Name</th>
             <th style={styles.tableHeader}>Quantity</th>
             <th style={styles.tableHeader}>Description</th>
-            <th style={styles.tableHeader}>Description</th>
             <th style={styles.tableHeader}>Actions</th>
           </tr>
         </thead>
@@ -134,7 +133,7 @@ export default function Dashboard() {
             <tr key={resource.id} style={styles.tableRow}>
               <td style={styles.tableCell}>{resource.name}</td>
               <td style={styles.tableCell}>{resource.quantity}</td>
-              <td style={styles.tableCell}>{resource.description || "N/A"}</td>
+              <td style={styles.tableCell}>{resource.description}</td>
               <td style={styles.tableCell}>
                 <button
                   style={styles.updateButton}
