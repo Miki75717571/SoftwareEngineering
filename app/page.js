@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [resources, setResources] = useState([]);
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [description, setDescription] = useState("");
 
 
   // Fetch Resources
@@ -26,27 +27,24 @@ export default function Dashboard() {
   };
   
   const addResource = async () => {
-    if (!name || !quantity) {
-      alert("Please fill in both Resource Name and Quantity");
+    if (!name || !quantity || !description) {
+      alert("Please fill in all fields: Resource Name, Quantity, and Description");
       return;
     }
   
-    try {
-      const { error } = await supabase
-        .from("resources")
-        .insert([{ name, quantity: parseInt(quantity) }]);
+    const { error } = await supabase.from("resources").insert([
+      { name, quantity: parseInt(quantity), description },
+    ]);
   
-      if (error) {
-        console.error("Error adding resource:", error);
-        alert("Error adding resource: " + error.message);
-      } else {
-        fetchResources();
-        setName("");
-        setQuantity("");
-        alert("Resource added successfully!");
-      }
-    } catch (e) {
-      console.error("Unexpected error adding resource:", e);
+    if (error) {
+      console.error("Error adding resource:", error);
+      alert("Error adding resource: " + error.message);
+    } else {
+      fetchResources();
+      setName("");
+      setQuantity("");
+      setDescription("");
+      alert("Resource added successfully!");
     }
   };
   const deleteResource = async (id) => {
@@ -100,6 +98,13 @@ export default function Dashboard() {
           onChange={(e) => setQuantity(e.target.value)}
           style={styles.input}
         />
+         <input
+          type="text"
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          style={styles.input}
+        />
         <button onClick={addResource} style={styles.addButton}>
           ADD
         </button>
@@ -111,6 +116,7 @@ export default function Dashboard() {
           <tr>
             <th style={styles.tableHeader}>Name</th>
             <th style={styles.tableHeader}>Quantity</th>
+            <th style={styles.tableHeader}>Description</th>
             <th style={styles.tableHeader}>Actions</th>
           </tr>
         </thead>
@@ -119,6 +125,7 @@ export default function Dashboard() {
             <tr key={resource.id} style={styles.tableRow}>
               <td style={styles.tableCell}>{resource.name}</td>
               <td style={styles.tableCell}>{resource.quantity}</td>
+              <td style={styles.tableCell}>{resource.description || "N/A"}</td>
               <td style={styles.tableCell}>
                 <button
                   style={styles.deleteButton}
