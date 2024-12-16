@@ -48,6 +48,33 @@ export default function Dashboard() {
       console.error("Unexpected error adding resource:", e);
     }
   };
+  const deleteResource = async (id) => {
+    const { error } = await supabase.from("resources").delete().eq("id", id);
+    if (error) {
+      console.error("Error deleting resource:", error);
+      alert("Error deleting resource: " + error.message);
+    } else {
+      fetchResources();
+      alert("Resource deleted successfully!");
+    }
+  };
+
+  // Update Resource (Example: Increment Quantity)
+  const updateResource = async (id, currentQuantity) => {
+    const { error } = await supabase
+      .from("resources")
+      .update({ quantity: currentQuantity + 1 })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating resource:", error);
+      alert("Error updating resource: " + error.message);
+    } else {
+      fetchResources();
+      alert("Resource updated successfully!");
+    }
+  };
+
   useEffect(() => {
     fetchResources();
   }, []);
@@ -93,16 +120,16 @@ export default function Dashboard() {
               <td style={styles.tableCell}>{resource.quantity}</td>
               <td style={styles.tableCell}>
                 <button
-                  style={styles.actionButton}
-                  onClick={() => console.log("Update clicked")}
-                >
-                  Update
-                </button>
-                <button
-                  style={styles.actionButton}
-                  onClick={() => console.log("Delete clicked")}
+                  style={styles.deleteButton}
+                  onClick={() => deleteResource(resource.id)}
                 >
                   Delete
+                </button>
+                <button
+                  style={styles.updateButton}
+                  onClick={() => updateResource(resource.id, resource.quantity)}
+                >
+                  Update
                 </button>
               </td>
             </tr>
@@ -115,8 +142,8 @@ export default function Dashboard() {
 
 const styles = {
   container: {
-    backgroundColor: "#121212", // Dark background
-    color: "#FFFFFF", // White text
+    backgroundColor: "#121212",
+    color: "#FFFFFF",
     height: "100vh",
     padding: "20px",
     textAlign: "center",
@@ -169,13 +196,20 @@ const styles = {
     padding: "10px",
     textAlign: "center",
   },
-  actionButton: {
-    margin: "0 5px",
+  deleteButton: {
+    marginRight: "5px",
     padding: "5px 10px",
-    fontSize: "0.9rem",
-    border: "none",
     backgroundColor: "#FF6347",
     color: "#FFFFFF",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+  },
+  updateButton: {
+    padding: "5px 10px",
+    backgroundColor: "#32CD32",
+    color: "#FFFFFF",
+    border: "none",
     borderRadius: "5px",
     cursor: "pointer",
   },
