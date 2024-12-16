@@ -8,6 +8,7 @@ export default function Dashboard() {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
 
+
   // Fetch Resources
   const fetchResources = async () => {
     try {
@@ -165,6 +166,7 @@ const styles = {
     borderRadius: "5px",
     border: "1px solid #ddd",
     width: "200px",
+    color: "black",
   },
   addButton: {
     padding: "10px 20px",
